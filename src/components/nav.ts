@@ -1,29 +1,30 @@
 export const nav = () => {
-  // 1. grab your navbar and it's height
+  // Get the navbar, it's container and it's height
   const navbar = document.querySelector<HTMLElement>('.navbar1_component');
-  if (!navbar) return;
-  const navContainer = document.querySelector<HTMLElement>('.navbar1_container');
-  if (!navContainer) return;
+  const navContainer = navbar?.querySelector<HTMLElement>('.navbar1_container');
+  if (!navbar || !navContainer) return;
+
   const navHeight = navContainer.offsetHeight || 0;
 
-  // 2. grab all your theme sections
-  const themeSections = Array.from(
-    document.querySelectorAll<HTMLElement>('section.u-theme-dark, section.u-theme-light')
-  );
+  // Get all theme sections
+  const themeSections = [
+    ...document.querySelectorAll<HTMLElement>('section.u-theme-light, section.u-theme-dark'),
+  ];
   if (!themeSections.length) return;
 
-  // 3. on page-load, figure out which section “owns” the top of the viewport
-  // find the first section where the top of the viewport is between the top and bottom
+  // Get the current section on page load
   let current = themeSections.find((section) => {
     const rect = section.getBoundingClientRect();
     if (rect.top < navHeight) return rect.bottom >= navHeight;
     return rect.top >= navHeight;
   });
-  // if none found (we’re scrolled past everything), use the last one
-  if (!current) current = themeSections[themeSections.length - 1];
-  setTheme(current.classList.contains('u-theme-light'));
 
-  // 4. now observe each section’s TOP crossing at viewport-top
+  // If no section found, use the last one
+  if (!current) current = themeSections[themeSections.length - 1];
+  const initialTheme = getSectionTheme(current);
+  setNavTheme(navbar, initialTheme);
+
+  // Create an observer to track the intersection of the sections with the viewport
   const observer = new IntersectionObserver(
     (entries) => {
       const intersecting = entries.filter((entry) => entry.isIntersecting);
@@ -31,8 +32,8 @@ export const nav = () => {
 
       intersecting.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
       const nextSection = intersecting[0].target as HTMLElement;
-      const isLight = nextSection.classList.contains('u-theme-light');
-      setTheme(isLight);
+      const theme = getSectionTheme(nextSection);
+      setNavTheme(navbar, theme);
     },
     {
       root: null, // viewport
@@ -41,13 +42,18 @@ export const nav = () => {
     }
   );
 
-  // kick off the observer
+  // Observe each section
   themeSections.forEach((section) => observer.observe(section));
 
-  // helper to set exactly one class
-  function setTheme(isLight: boolean) {
-    if (!navbar) return;
-    navbar.classList.remove('is-light', 'is-dark');
-    navbar.classList.add(isLight ? 'is-light' : 'is-dark');
+  // Helper to set the theme of the navbar
+  function setNavTheme(nav: HTMLElement, theme: 'light' | 'dark') {
+    nav.classList.remove('u-theme-light', 'u-theme-dark');
+    nav.classList.add(`u-theme-${theme}`);
+  }
+
+  // Helper to get the theme of a section
+  function getSectionTheme(section: HTMLElement): 'light' | 'dark' {
+    if (section.classList.contains('u-theme-light')) return 'light';
+    return 'dark';
   }
 };
