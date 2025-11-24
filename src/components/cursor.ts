@@ -41,22 +41,26 @@ export const cursor = () => {
     const playIcon = document.querySelector<HTMLElement>('.lightbox-play-icon.active');
     if (playIcon) playIcon.style.transform = 'scale(0.8)';
   });
+
   document.addEventListener('mouseup', () => {
     cursor.style.transform = cursor.classList.contains('hidden') ? 'scale(0)' : 'scale(1)';
     const playIcon = document.querySelector<HTMLElement>('.lightbox-play-icon.active');
     if (playIcon) playIcon.style.transform = 'scale(1)';
   });
 
-  const benefitsLightbox = document.querySelector('.home_benefits_lightbox');
-  const playIcon = document.querySelector('.lightbox-play-icon');
-  if (benefitsLightbox && playIcon) {
-    benefitsLightbox.addEventListener('mouseenter', () => {
-      cursor.classList.add('hidden');
-      playIcon.classList.add('active');
-    });
-    benefitsLightbox.addEventListener('mouseleave', () => {
-      cursor.classList.remove('hidden');
-      playIcon.classList.remove('active');
-    });
-  }
+  const lightbox = document.querySelector('.w-lightbox');
+  if (!lightbox) return;
+
+  const playIcon = lightbox.querySelector('.lightbox-play-icon');
+  if (!playIcon) return;
+
+  lightbox.addEventListener('mouseenter', () => {
+    cursor.classList.add('hidden');
+    playIcon.classList.add('active');
+  });
+
+  lightbox.addEventListener('mouseleave', () => {
+    cursor.classList.remove('hidden');
+    playIcon.classList.remove('active');
+  });
 };
