@@ -59,8 +59,10 @@ export const cursor = () => {
   });
 
   document.addEventListener('mouseup', () => {
-    cursor.style.transform = cursor.classList.contains('hidden') ? 'scale(0)' : 'scale(1)';
-    if (playIcon) playIcon.style.transform = 'scale(1)';
+    if (cursor.classList.contains('hidden')) cursor.style.transform = 'scale(0)';
+    else cursor.style.removeProperty('transform');
+
+    if (playIcon) playIcon.style.removeProperty('transform');
   });
 
   if (!lightbox || !playIcon) return;
