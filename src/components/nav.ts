@@ -7,7 +7,7 @@ export const nav = () => {
   const navHeight = navContainer.offsetHeight || 0;
 
   // Get all theme sections
-  const themeSections = [
+  const themeSections: HTMLElement[] = [
     ...document.querySelectorAll<HTMLElement>('section.u-theme-light, section.u-theme-dark'),
   ];
   if (!themeSections.length) return;
@@ -25,6 +25,7 @@ export const nav = () => {
   setNavTheme(navbar, initialTheme);
 
   // Create an observer to track the intersection of the sections with the viewport
+  // Safari has issues with negative percentage values in rootMargin, so we use a pixel-based approach
   const observer = new IntersectionObserver(
     (entries) => {
       const intersecting = entries.filter((entry) => entry.isIntersecting);
@@ -37,7 +38,9 @@ export const nav = () => {
     },
     {
       root: null, // viewport
-      rootMargin: `-${navHeight}px 0px -100% 0px`, // fire when the nav overlaps the section's top
+      // Use pixel values only - Safari doesn't handle negative percentages well
+      // -100% bottom margin = -viewportHeight, creating a zero-height intersection area at the top
+      rootMargin: `-${navHeight}px 0px -${window.innerHeight - navHeight}px 0px`,
       threshold: 0, // any intersection >0
     }
   );
