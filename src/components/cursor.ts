@@ -19,6 +19,19 @@ export const cursor = () => {
     cursor.style.opacity = '1';
   });
 
+  const lightbox = document.querySelector<HTMLElement>('.w-lightbox');
+  const playIcon = lightbox?.querySelector<HTMLElement>('.lightbox-play-icon');
+  if (playIcon) {
+    playIcon.style.width = `${playIcon.offsetWidth}px`;
+    playIcon.style.height = `${playIcon.offsetHeight}px`;
+  }
+
+  let isMouseInLightbox = false;
+  let lightboxMouseX = 0;
+  let lightboxMouseY = 0;
+  let currentLightboxX = 0;
+  let currentLightboxY = 0;
+
   function animateCursor() {
     const ease = 0.5;
     currentX += (mouseX - currentX) * ease;
@@ -26,11 +39,14 @@ export const cursor = () => {
     cursor.style.left = currentX + 'px';
     cursor.style.top = currentY + 'px';
 
-    const playIcon = document.querySelector<HTMLElement>('.lightbox-play-icon.active');
-    if (playIcon) {
-      playIcon.style.left = currentX - playIcon.offsetWidth / 2 + 6 + 'px';
-      playIcon.style.top = currentY - playIcon.offsetHeight / 2 + 6 + 'px';
-      playIcon.style.opacity = '1';
+    if (playIcon && lightbox) {
+      // Only update position when mouse is inside lightbox
+      if (isMouseInLightbox) {
+        currentLightboxX += (lightboxMouseX - currentLightboxX) * ease;
+        currentLightboxY += (lightboxMouseY - currentLightboxY) * ease;
+        playIcon.style.left = currentLightboxX - playIcon.offsetWidth / 2 + 'px';
+        playIcon.style.top = currentLightboxY - playIcon.offsetHeight / 2 + 'px';
+      }
     }
 
     requestAnimationFrame(animateCursor);
@@ -39,30 +55,67 @@ export const cursor = () => {
 
   document.addEventListener('mousedown', () => {
     cursor.style.transform = 'scale(0.8)';
-    const playIcon = document.querySelector<HTMLElement>('.lightbox-play-icon.active');
     if (playIcon) playIcon.style.transform = 'scale(0.8)';
   });
 
   document.addEventListener('mouseup', () => {
     cursor.style.transform = cursor.classList.contains('hidden') ? 'scale(0)' : 'scale(1)';
-    const playIcon = document.querySelector<HTMLElement>('.lightbox-play-icon.active');
     if (playIcon) playIcon.style.transform = 'scale(1)';
   });
 
-  const lightbox = document.querySelector<HTMLElement>('.w-lightbox');
-  if (!lightbox) return;
+  if (!lightbox || !playIcon) return;
 
-  const playIcon = lightbox.querySelector<HTMLElement>('.lightbox-play-icon');
-  if (!playIcon) return;
+  lightbox.addEventListener('mousemove', (e) => {
+    const rect = lightbox.getBoundingClientRect();
+    lightboxMouseX = e.clientX - rect.left;
+    lightboxMouseY = e.clientY - rect.top;
+  });
 
   lightbox.addEventListener('mouseenter', () => {
     cursor.classList.add('hidden');
     playIcon.classList.add('active');
+    isMouseInLightbox = true;
+    // Initialize position to current mouse position relative to lightbox - set immediately (no ease)
+    const rect = lightbox.getBoundingClientRect();
+    lightboxMouseX = mouseX + 6 - rect.left;
+    lightboxMouseY = mouseY + 6 - rect.top;
+    currentLightboxX = lightboxMouseX;
+    currentLightboxY = lightboxMouseY;
+    // Temporarily disable transition for immediate positioning
+    const originalTransition = playIcon.style.transition;
+    playIcon.style.transition = 'none';
+    // Set position and opacity to 0 immediately
+    playIcon.style.left = currentLightboxX - playIcon.offsetWidth / 2 + 'px';
+    playIcon.style.top = currentLightboxY - playIcon.offsetHeight / 2 + 'px';
+    playIcon.style.opacity = '0';
+    // Re-enable transition after a frame
+    requestAnimationFrame(() => {
+      playIcon.style.transition = originalTransition;
+      // Set opacity to 1, which will animate from 0 to 1
+      playIcon.style.opacity = '1';
+    });
   });
 
   lightbox.addEventListener('mouseleave', () => {
     cursor.classList.remove('hidden');
     playIcon.classList.remove('active');
+    isMouseInLightbox = false;
+    // Temporarily disable transition for immediate reset
+    const originalTransition = playIcon.style.transition;
+    playIcon.style.transition = 'none';
+    // Set opacity to 0 immediately
     playIcon.style.opacity = '0';
+    // Reset to original position by clearing inline styles (immediate, no ease)
+    playIcon.style.removeProperty('left');
+    playIcon.style.removeProperty('top');
+    // Re-enable transition after a frame
+    requestAnimationFrame(() => {
+      playIcon.style.transition = originalTransition;
+      // Set opacity to 1, which will animate from 0 to 1
+      playIcon.style.opacity = '1';
+    });
+    // Reset position variables
+    currentLightboxX = 0;
+    currentLightboxY = 0;
   });
 };
