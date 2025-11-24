@@ -30,6 +30,7 @@ export const cursor = () => {
     if (playIcon) {
       playIcon.style.left = currentX - playIcon.offsetWidth / 2 + 6 + 'px';
       playIcon.style.top = currentY - playIcon.offsetHeight / 2 + 6 + 'px';
+      playIcon.style.opacity = '1';
     }
 
     requestAnimationFrame(animateCursor);
@@ -48,10 +49,10 @@ export const cursor = () => {
     if (playIcon) playIcon.style.transform = 'scale(1)';
   });
 
-  const lightbox = document.querySelector('.w-lightbox');
+  const lightbox = document.querySelector<HTMLElement>('.w-lightbox');
   if (!lightbox) return;
 
-  const playIcon = lightbox.querySelector('.lightbox-play-icon');
+  const playIcon = lightbox.querySelector<HTMLElement>('.lightbox-play-icon');
   if (!playIcon) return;
 
   lightbox.addEventListener('mouseenter', () => {
@@ -62,5 +63,6 @@ export const cursor = () => {
   lightbox.addEventListener('mouseleave', () => {
     cursor.classList.remove('hidden');
     playIcon.classList.remove('active');
+    playIcon.style.opacity = '0';
   });
 };
